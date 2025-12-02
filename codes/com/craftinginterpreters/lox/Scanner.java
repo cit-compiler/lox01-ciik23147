@@ -11,6 +11,28 @@ public class Scanner {
      private final String source;
   private final List<Token> tokens = new ArrayList<>();
 
+private static final Map<String, TokenType> keywords;
+
+  static {
+    keywords = new HashMap<>();
+    keywords.put("and",    AND);
+    keywords.put("class",  CLASS);
+    keywords.put("else",   ELSE);
+    keywords.put("false",  FALSE);
+    keywords.put("for",    FOR);
+    keywords.put("fun",    FUN);
+    keywords.put("if",     IF);
+    keywords.put("nil",    NIL);
+    keywords.put("or",     OR);
+    keywords.put("print",  PRINT);
+    keywords.put("return", RETURN);
+    keywords.put("super",  SUPER);
+    keywords.put("this",   THIS);
+    keywords.put("true",   TRUE);
+    keywords.put("var",    VAR);
+    keywords.put("while",  WHILE);
+  }
+
   private int start = 0;
   private int current = 0;
   private int line = 1;
@@ -76,11 +98,22 @@ private void scanToken() {
       default:
         if (isDigit(c)) {
           number();
-        } else {
+        } else if (isAlpha(c)) {
+          identifier();
+        }else {
           Lox.error(line, "Unexpected character.");
         }
       }
     }
+
+private void identifier() {
+    while (isAlphaNumeric(peek())) advance();
+    String text = source.substring(start, current);
+    TokenType type = keywords.get(text);
+    if (type == null) type = IDENTIFIER;
+    addToken(type);
+    addToken(IDENTIFIER);
+  }    
     
 private void number() {
     while (isDigit(peek())) advance();
@@ -149,6 +182,16 @@ private boolean isAtEnd() {
 private char peekNext() {
     if (current + 1 >= source.length()) return '\0';
     return source.charAt(current + 1);
+  }
+
+private boolean isAlpha(char c) {
+    return (c >= 'a' && c <= 'z') ||
+           (c >= 'A' && c <= 'Z') ||
+            c == '_';
+  }
+
+  private boolean isAlphaNumeric(char c) {
+    return isAlpha(c) || isDigit(c);
   }
 
   private boolean isDigit(char c) {

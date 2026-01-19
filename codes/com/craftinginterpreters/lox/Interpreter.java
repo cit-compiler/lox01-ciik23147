@@ -21,25 +21,6 @@ class Interpreter implements Expr.Visitor<Object>,
         stmt.accept(this);
     }
 
-    void executeBlock(List<Stmt> statements, Environment environment) {
-        Environment previous = this.environment;
-        try {
-            this.environment = environment;
-
-            for (Stmt statement : statements) {
-                execute(statement);
-            }
-        } finally {
-            this.environment = previous;
-        }
-    }
-
-    @Override
-    public Void visitBlockStmt(Stmt.Block stmt) {
-        executeBlock(stmt.statements, new Environment(environment));
-        return null;
-    }
-
     @Override
     public Void visitExpressionStmt(Stmt.Expression stmt) {
         evaluate(stmt.expression);
@@ -63,6 +44,8 @@ class Interpreter implements Expr.Visitor<Object>,
         environment.define(stmt.name.lexeme, value);
         return null;
     }
+
+    // ブロック文の visitBlockStmt はまだ無い
 
     @Override
     public Object visitAssignExpr(Expr.Assign expr) {
@@ -98,11 +81,9 @@ class Interpreter implements Expr.Visitor<Object>,
                 if (left instanceof Double && right instanceof Double) {
                     return (double)left + (double)right;
                 }
-
                 if (left instanceof String && right instanceof String) {
                     return (String)left + (String)right;
                 }
-
                 throw new RuntimeError(expr.operator,
                     "Operands must be two numbers or two strings.");
             case SLASH:
@@ -112,8 +93,6 @@ class Interpreter implements Expr.Visitor<Object>,
                 checkNumberOperands(expr.operator, left, right);
                 return (double)left * (double)right;
         }
-
-        // Unreachable.
         return null;
     }
 
@@ -138,8 +117,6 @@ class Interpreter implements Expr.Visitor<Object>,
                 checkNumberOperand(expr.operator, right);
                 return -(double)right;
         }
-
-        // Unreachable.
         return null;
     }
 
@@ -167,13 +144,11 @@ class Interpreter implements Expr.Visitor<Object>,
     private boolean isEqual(Object a, Object b) {
         if (a == null && b == null) return true;
         if (a == null) return false;
-
         return a.equals(b);
     }
 
     private String stringify(Object object) {
         if (object == null) return "nil";
-
         if (object instanceof Double) {
             String text = object.toString();
             if (text.endsWith(".0")) {
@@ -181,7 +156,6 @@ class Interpreter implements Expr.Visitor<Object>,
             }
             return text;
         }
-
         return object.toString();
     }
 

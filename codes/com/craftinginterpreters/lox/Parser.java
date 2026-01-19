@@ -20,14 +20,12 @@ class Parser {
         while (!isAtEnd()) {
             statements.add(declaration());
         }
-
         return statements;
     }
 
     private Stmt declaration() {
         try {
             if (match(VAR)) return varDeclaration();
-
             return statement();
         } catch (ParseError error) {
             synchronize();
@@ -37,8 +35,7 @@ class Parser {
 
     private Stmt statement() {
         if (match(PRINT)) return printStatement();
-        if (match(LEFT_BRACE)) return new Stmt.Block(block());
-
+        // ここにブロックの処理（LEFT_BRACE）はまだ無い
         return expressionStatement();
     }
 
@@ -64,17 +61,6 @@ class Parser {
         Expr expr = expression();
         consume(SEMICOLON, "Expect ';' after expression.");
         return new Stmt.Expression(expr);
-    }
-
-    private List<Stmt> block() {
-        List<Stmt> statements = new ArrayList<>();
-
-        while (!check(RIGHT_BRACE) && !isAtEnd()) {
-            statements.add(declaration());
-        }
-
-        consume(RIGHT_BRACE, "Expect '}' after block.");
-        return statements;
     }
 
     private Expr expression() {
@@ -186,13 +172,11 @@ class Parser {
                 return true;
             }
         }
-
         return false;
     }
 
     private Token consume(TokenType type, String message) {
         if (check(type)) return advance();
-
         throw error(peek(), message);
     }
 
@@ -225,10 +209,8 @@ class Parser {
 
     private void synchronize() {
         advance();
-
         while (!isAtEnd()) {
             if (previous().type == SEMICOLON) return;
-
             switch (peek().type) {
                 case CLASS:
                 case FUN:
@@ -240,7 +222,6 @@ class Parser {
                 case RETURN:
                     return;
             }
-
             advance();
         }
     }
